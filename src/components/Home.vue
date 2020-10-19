@@ -43,13 +43,9 @@
               <Icon type="md-home" />
               首页
             </MenuItem> -->
-            <MenuItem v-if="item.path" :name="item.path">
-              <Icon :type="item.icon" />
-              {{ isCollapsed ? '' : item.title }}
-            </MenuItem>
-            <Submenu v-else :name="item.title">
+            <Submenu v-if="item.children.length" :name="item.name">
               <template slot="title">
-                <Icon :type="item.icon" />{{ isCollapsed ? '' : item.title }}
+                <Icon :type="item.icon" />{{ isCollapsed ? '' : item.name }}
               </template>
               <MenuItem
                 v-for="child in item.children"
@@ -57,9 +53,13 @@
                 :name="child.path"
               >
                 <Icon :type="child.icon" />
-                {{ isCollapsed ? '' : child.title }}
+                {{ isCollapsed ? '' : child.name }}
               </MenuItem>
             </Submenu>
+            <MenuItem v-else :name="item.path">
+              <Icon :type="item.icon" />
+              {{ isCollapsed ? '' : item.name }}
+            </MenuItem>
           </Menu>
         </Sider>
         <Layout :style="{ padding: '0 12px 24px' }">
@@ -82,32 +82,48 @@ export default {
   name: "Home",
   data() {
     return {
-      menuList: [
-        {
-          id: 1,
-          title: "首页",
-          path: "welcome",
-          icon: "md-home",
-        },
-        {
-          id: 2,
-          title: "商品管理",
-          path: "goods",
-          icon: "md-basket",
-        },
-        {
-          id: 4,
-          title: "国际化管理",
-          path: "lang",
-          icon: "md-basket",
-        },
-        {
-          id: 3,
-          title: "其他管理",
-          icon: "md-more",
-          children: [{ id: 4, path: "other", title: "其他", icon: "md-more" }],
-        },
-      ],
+      // menuList: [
+      //   {
+      //     id: 1,
+      //     title: "首页",
+      //     path: "welcome",
+      //     icon: "md-home",
+      //   },
+      //   {
+      //     id: 2,
+      //     title: "用户管理",
+      //     path: "users",
+      //     icon: "md-basket",
+      //   },
+      //   {
+      //     id: 6,
+      //     title: "权限管理",
+      //     icon: "md-basket",
+      //     children: [
+      //       { id: 61, path: "roles", title: "角色列表", icon: "md-more" },
+      //       { id: 62, path: "permits", title: "权限列表", icon: "md-more" }
+      //     ],
+      //   },
+      //   {
+      //     id: 3,
+      //     title: "商品管理",
+      //     path: "goods",
+      //     icon: "md-basket",
+      //   },
+      //   {
+      //     id: 4,
+      //     title: "国际化管理",
+      //     path: "lang",
+      //     icon: "md-basket",
+      //   },
+      //   {
+      //     id: 5,
+      //     title: "其他管理",
+      //     icon: "md-more",
+      //     children: [{ id: 51, path: "other", title: "其他", icon: "md-more" }],
+      //   },
+      // ],
+      menuList: [],
       activeName: "welcome",
       isCollapsed: false,
     };
@@ -121,13 +137,24 @@ export default {
     },
   },
   methods: {
+    getMenus() {
+      const menus = window.sessionStorage.getItem('menus')
+      this.menuList = JSON.parse(menus)
+      // {fid: 0
+      // id: 1
+      // level: 0
+      // mark: "权限管理"
+      // name: "权限管理"
+      // path: "permits"
+      // _showChildren: true}
+      console.log(this.menuList)
+    },
     onSelectMenu(val) {
       if (this.$route.name === val) return;
       this.$router.push({ name: val });
       this.activeName = val;
     },
     collapsedSider() {
-      console.log(111);
       this.$refs.siderRef.toggleCollapse();
     },
     logOut() {
@@ -139,6 +166,7 @@ export default {
   },
   mounted() {
     this.activeName = this.$route.name;
+    this.getMenus()
   },
 };
 </script>

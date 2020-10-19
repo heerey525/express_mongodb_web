@@ -24,36 +24,47 @@ const router = new VueRouter({
           component: () => import("@/components/Welcome"),
         },
         {
+          path: "/users",
+          name: "users",
+          component: () => import("@/components/users/Users"),
+        },
+        {
+          path: "/roles",
+          name: "roles",
+          component: () => import("@/components/roles/Roles"),
+        },
+        {
+          path: "/permits",
+          name: "permits",
+          component: () => import("@/components/permits/Permits"),
+        },
+        {
           path: "/goods",
           name: "goods",
-          component: () => import("@/components/Goods"),
+          component: () => import("@/components/goods/Goods"),
         },
         {
           path: "/other",
           name: "other",
-          component: () => import("@/components/Other"),
+          component: () => import("@/components/others/Other"),
         },
         {
           path: "/lang",
           name: "lang",
-          component: () => import("@/components/Lang"),
+          component: () => import("@/components/langs/Lang"),
         }
       ],
     },
+    { path: "*", name: "*", component: () => import("@/components/404"), },
   ],
 });
 const LOGIN_PAGE_NAME = "login";
 const HOME_PAGE_NAME = "welcome";
-const token = window.sessionStorage.getItem("token");
+
 router.beforeEach((to, from, next) => {
+  const token = window.sessionStorage.getItem("token");
   if (!token && to.name != LOGIN_PAGE_NAME) {
     next({ name: LOGIN_PAGE_NAME });
-  } else if (!token && to.name == LOGIN_PAGE_NAME) {
-    next();
-  } else if (token && to.name == LOGIN_PAGE_NAME) {
-    next()
-  } else if (token && to.name == HOME_PAGE_NAME) {
-    next()
   } else {
     next();
   }

@@ -43,6 +43,7 @@
 </template>
 <script>
 import { login, getMailCode, reg } from "@/api/user";
+import { getMenusList } from "@/api/permit";
 export default {
   data () {
     return {
@@ -94,19 +95,31 @@ export default {
       }
       this.$refs[name].validate((valid) => {
         if (!valid) return;
+        let isok = false
         login(this.dataForm)
           .then((res) => {
             if (res.data.code === 200) {
               this.$Message.success("登录成功");
               window.sessionStorage.setItem("token", res.data.token);
-              this.$router.push("/welcome");
+              return getMenusList()
             } else {
+              isok = true
               this.$Message.error(res.data.msg);
             }
           })
+          .then((res) => {
+            if (res.data.code === 200) {
+              const data = res.data
+              this.$router.push("/welcome");
+              window.sessionStorage.setItem("menus", JSON.stringify(data.data));
+            } else {
+              this.$Message.error(res.data.msg)
+            }
+          })
           .catch((err) => {
-            this.$Message.error(err);
-          });
+            if (isok) return
+            this.$Message.error(err)
+          })
       });
     },
     handleReg (name) {
@@ -148,7 +161,7 @@ export default {
             this.$Message.error(err);
           });
       });
-    },
+    }
   },
 };
 </script>
