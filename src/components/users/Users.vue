@@ -36,7 +36,7 @@
   </Content>
 </template>
 <script>
-import { usersPage, usersDel } from '@/api/user'
+import { usersPage, usersDel, usersUpdateState } from '@/api/user'
 import AddUpdate from "./UsersAddUpdate"
 import UsersRole from "./UsersRole"
 export default {
@@ -62,7 +62,7 @@ export default {
           title: '状态',
           key: 'state',
           align: 'center',
-          render(h, params) {
+          render: (h, params) => {
             return h('div', [
               h(
                 'i-switch',
@@ -71,8 +71,8 @@ export default {
                     value: params.row.state ? true : false
                   },
                   on: {
-                    'on-change': () => {
-                      // this.show(params.index)
+                    'on-change': (state) => {
+                      this.updateState(params.row.id, state)
                     },
                   },
                 },
@@ -194,6 +194,20 @@ export default {
     },
     show(params) {
       this.$refs.AddUpdate.init()
+    },
+    // 修改账号状态
+    updateState(id, state) {
+      usersUpdateState({ id, state })
+        .then((res) => {
+          if (res.data.code === 200) {
+            this.$Message.success('状态修改成功')
+          } else {
+            this.$Message.error(res.data.msg)
+          }
+        })
+        .catch((err) => {
+          this.$Message.error(err)
+        })
     },
     remove(_id) {
       usersDel({ _id: _id })

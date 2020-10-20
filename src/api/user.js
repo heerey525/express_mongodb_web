@@ -56,3 +56,19 @@ export const usersUpdateRole = info => {
     method: 'post'
   })
 }
+// 修改用户状态
+export const usersUpdateState = info => {
+  return axios.request({
+    url: 'user/updateState',
+    data: info,
+    method: 'post'
+  })
+}
+// 修改密码
+export const usersUpdatePs = info => {
+  return axios.request({
+    url: 'user/updatePs',
+    data: info,
+    method: 'post'
+  })
+}

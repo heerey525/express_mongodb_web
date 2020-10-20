@@ -11,7 +11,14 @@
             type="md-menu"
             size="24"
           ></Icon>
-          <Icon class="log_out" type="md-log-out" size="24" @click="logOut" />
+          <Dropdown class="log_out" @on-click="downMenuClick">
+              <Icon type="md-contact" size="30" />
+              <DropdownMenu slot="list" >
+                  <DropdownItem name="updatePs" >修改密码</DropdownItem>
+                  <DropdownItem name="logOut" >退出登录</DropdownItem>
+              </DropdownMenu>
+          </Dropdown>
+          <!-- <Icon class="log_out" type="md-log-out" size="24" @click="logOut" /> -->
           <!-- <div class="layout-nav">
             <MenuItem name="1">
               <Icon type="ios-navigate"></Icon>菜单
@@ -75,9 +82,31 @@
         </Layout>
       </Layout>
     </Layout>
+    <!-- 修改密码 -->
+    <Modal
+      v-model="updatePsModal"
+      title="修改密码"
+      @on-cancel="updatePsCancel('formValidate')">
+       <Form ref="formValidate" :model="formValidate" :rules="ruleValidate" :label-width="80">
+        <FormItem label="旧密码" prop="oldPs">
+            <Input v-model="formValidate.oldPs" placeholder="旧密码"></Input>
+        </FormItem>
+        <FormItem label="新密码" prop="newPs">
+            <Input v-model="formValidate.newPs" placeholder="新密码"></Input>
+        </FormItem>
+        <FormItem label="新密码" prop="newPsAgain">
+            <Input v-model="formValidate.newPsAgain" placeholder="确认新密码"></Input>
+        </FormItem>
+      </Form>
+      <div slot="footer">
+        <Button @click="updatePsCancel('formValidate')">取消</Button>
+        <Button type="primary" @click="updatePsOk('formValidate')">确定</Button>
+      </div>
+    </Modal>
   </div>
 </template>
 <script>
+import { usersUpdatePs } from '@/api/user'
 export default {
   name: "Home",
   data() {
@@ -126,6 +155,31 @@ export default {
       menuList: [],
       activeName: "welcome",
       isCollapsed: false,
+      updatePsModal: false,
+      formValidate: {
+        oldPs: '',
+        newPs: '',
+        newPsAgain: ''
+      },
+      ruleValidate: {
+        oldPs: [
+          { required: true, message: '请输入旧密码', trigger: 'blur' }
+        ],
+        newPs: [
+          { required: true, message: '请输入新密码', trigger: 'blur' }
+        ],
+        newPsAgain: [
+          { required: true, message: '请确认新密码', trigger: 'blur' },
+          { validator: (rule, value, callback) => {
+              if (value !== this.formValidate.newPs) {
+                  callback(new Error('确认密码和新密码不一致'));
+              } else {
+                  callback();
+              }
+            }, trigger: 'blur' }
+        ]
+      },
+      loading: true
     };
   },
   computed: {
@@ -147,7 +201,6 @@ export default {
       // name: "权限管理"
       // path: "permits"
       // _showChildren: true}
-      console.log(this.menuList)
     },
     onSelectMenu(val) {
       if (this.$route.name === val) return;
@@ -157,11 +210,45 @@ export default {
     collapsedSider() {
       this.$refs.siderRef.toggleCollapse();
     },
-    logOut() {
-      this.$router.push({ name: 'login' }, () => {
-        this.$Message.success('退出成功')
-        window.sessionStorage.removeItem('token')
+    downMenuClick(val) {
+      if (val === 'logOut') {
+        this.$router.push({ name: 'login' }, () => {
+          this.$Message.success('退出成功')
+          window.sessionStorage.removeItem('token')
+        })
+      } else if (val === 'updatePs') {
+        this.updatePsModal = true
+      }
+    },
+    updatePsOk(name) {
+      this.$refs[name].validate((valid) => {
+        if (!valid) return
+        usersUpdatePs(this.formValidate)
+          .then((res) => {
+            if (res.data.code === 200) {
+              this.$Message.success('密码修改成功')
+              setTimeout(() => {
+                this.$router.push({ name: 'login' }, () => {
+                  window.sessionStorage.removeItem('token')
+                })
+              }, 1000)
+            } else {
+              this.$Message.error(res.data.msg)
+            }
+          })
+          .catch((err) => {
+            this.$Message.error(err)
+          })
       })
+    },
+    updatePsCancel(name) {
+      this.formValidate = {
+        oldPs: '',
+        newPs: '',
+        newPsAgain: ''
+      }
+      this.$refs[name].resetFields();
+      this.updatePsModal = false
     }
   },
   mounted() {
@@ -183,10 +270,13 @@ export default {
     .ivu-layout-header {
       padding: 0;
       .log_out {
-        margin: 18px 20px;
+        margin: 0px 20px;
         color: #fff;
         float: right;
         cursor: pointer;
+        .ivu-icon {
+          vertical-align: middle;
+        }
       }
     }
     .ivu-layout-content {
